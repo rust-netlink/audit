@@ -25,7 +25,7 @@ jobs:
         run: cargo test
 
       - name: Test with tokio feature
-        run: cargo test --feature tokio_socket
+        run: cargo test --features tokio_socket
 
       - name: Test with smol_socket feature
-        run: cargo test --feature smol_socket
+        run: cargo test --features smol_socket
