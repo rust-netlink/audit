@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-//! This example opens a netlink socket, enables audit events, and prints the events that are being
-//! received.
+//! This example opens a netlink socket, enables audit events, and prints the
+//! events that are being received.
 
 use audit::new_connection;
 use futures::stream::StreamExt;

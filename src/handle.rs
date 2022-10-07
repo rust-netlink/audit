@@ -10,17 +10,8 @@ use futures::{
 use netlink_proto::{sys::SocketAddr, ConnectionHandle};
 
 use crate::packet::{
-    rules::RuleMessage,
-    AuditMessage,
-    NetlinkMessage,
-    NetlinkPayload,
-    StatusMessage,
-    NLM_F_ACK,
-    NLM_F_CREATE,
-    NLM_F_DUMP,
-    NLM_F_EXCL,
-    NLM_F_NONREC,
-    NLM_F_REQUEST,
+    rules::RuleMessage, AuditMessage, NetlinkMessage, NetlinkPayload, StatusMessage, NLM_F_ACK,
+    NLM_F_CREATE, NLM_F_DUMP, NLM_F_EXCL, NLM_F_NONREC, NLM_F_REQUEST,
 };
 
 // ==========================================
@@ -47,7 +38,8 @@ pub const AUDIT_VERSION_BACKLOG_WAIT_TIME: u32 = 2;
 
 use crate::Error;
 
-/// A handle to the netlink connection, used to send and receive netlink messsage
+/// A handle to the netlink connection, used to send and receive netlink
+/// messsage
 #[derive(Clone, Debug)]
 pub struct Handle(ConnectionHandle<AuditMessage>);
 
@@ -66,8 +58,9 @@ impl Handle {
             .map_err(|_| Error::RequestFailed)
     }
 
-    /// Send a netlink message that expects an acknowledgement. The returned future resolved when
-    /// that ACK is received. If anything else is received, the future resolves into an error.
+    /// Send a netlink message that expects an acknowledgement. The returned
+    /// future resolved when that ACK is received. If anything else is
+    /// received, the future resolves into an error.
     async fn acked_request(&mut self, message: NetlinkMessage<AuditMessage>) -> Result<(), Error> {
         let mut response = self.request(message)?;
         if let Some(message) = response.next().await {
