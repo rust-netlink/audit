@@ -4,18 +4,18 @@ version = "0.7.1"
 authors = ["Corentin Henry <corentinhenry@gmail.com>"]
 edition = "2018"
 
-homepage = "https://github.com/little-dude/netlink"
+homepage = "https://github.com/rust-netlink/audit"
 keywords = ["netlink", "ip", "linux", "audit"]
 license = "MIT"
 readme = "../README.md"
-repository = "https://github.com/little-dude/netlink"
+repository = "https://github.com/rust-netlink/audit"
 description = "linux audit via netlink"
 
 [dependencies]
 futures = "0.3.11"
 thiserror = "1"
-netlink-packet-audit = { version = "0.4.1", path = "../netlink-packet-audit" }
-netlink-proto = { default-features = false, version = "0.10.0", path = "../netlink-proto" }
+netlink-packet-audit = { version = "0.4.1" }
+netlink-proto = { default-features = false, version = "0.10.0" }
 
 [features]
 default = ["tokio_socket"]
