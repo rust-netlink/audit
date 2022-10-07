@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
   push:
     branches:
-      - master
+      - main
 
 jobs:
   rustfmt_clippy:
@@ -29,7 +29,7 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: clippy-tokio-socket
-        run: cargo clippy --workspace
+        run: cargo clippy
 
       - name: clippy-smol-socket
-        run: cargo clippy --no-default-features --features smol_socket --workspace
+        run: cargo clippy --no-default-features --features smol_socket
