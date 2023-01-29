@@ -7,12 +7,13 @@ use futures::{
     stream::{Stream, StreamExt, TryStream},
     FutureExt,
 };
+use netlink_packet_core::{
+    NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_EXCL, NLM_F_NONREC,
+    NLM_F_REQUEST,
+};
 use netlink_proto::{sys::SocketAddr, ConnectionHandle};
 
-use crate::packet::{
-    rules::RuleMessage, AuditMessage, NetlinkMessage, NetlinkPayload, StatusMessage, NLM_F_ACK,
-    NLM_F_CREATE, NLM_F_DUMP, NLM_F_EXCL, NLM_F_NONREC, NLM_F_REQUEST,
-};
+use crate::packet::{rules::RuleMessage, AuditMessage, StatusMessage};
 
 // ==========================================
 // mask values
