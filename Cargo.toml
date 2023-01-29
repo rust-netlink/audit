@@ -1,6 +1,6 @@
 [package]
 name = "audit"
-version = "0.7.1"
+version = "0.7.2"
 authors = ["Corentin Henry <corentinhenry@gmail.com>"]
 edition = "2018"
 homepage = "https://github.com/rust-netlink/audit"
