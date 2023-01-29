@@ -8,7 +8,8 @@ use futures::stream::StreamExt;
 
 #[async_std::main]
 async fn main() -> Result<(), String> {
-    let (connection, mut handle, mut messages) = new_connection().map_err(|e| format!("{}", e))?;
+    let (connection, mut handle, mut messages) =
+        new_connection().map_err(|e| format!("{}", e))?;
 
     async_std::task::spawn(connection);
 
