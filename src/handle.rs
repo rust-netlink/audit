@@ -8,8 +8,8 @@ use futures::{
     FutureExt,
 };
 use netlink_packet_core::{
-    NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_EXCL, NLM_F_NONREC,
-    NLM_F_REQUEST,
+    NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP,
+    NLM_F_EXCL, NLM_F_NONREC, NLM_F_REQUEST,
 };
 use netlink_proto::{sys::SocketAddr, ConnectionHandle};
 
@@ -62,7 +62,10 @@ impl Handle {
     /// Send a netlink message that expects an acknowledgement. The returned
     /// future resolved when that ACK is received. If anything else is
     /// received, the future resolves into an error.
-    async fn acked_request(&mut self, message: NetlinkMessage<AuditMessage>) -> Result<(), Error> {
+    async fn acked_request(
+        &mut self,
+        message: NetlinkMessage<AuditMessage>,
+    ) -> Result<(), Error> {
         let mut response = self.request(message)?;
         if let Some(message) = response.next().await {
             let (header, payload) = message.into_parts();
@@ -83,7 +86,8 @@ impl Handle {
     /// Add the given rule
     pub async fn add_rule(&mut self, rule: RuleMessage) -> Result<(), Error> {
         let mut req = NetlinkMessage::from(AuditMessage::AddRule(rule));
-        req.header.flags = NLM_F_REQUEST | NLM_F_ACK | NLM_F_EXCL | NLM_F_CREATE;
+        req.header.flags =
+            NLM_F_REQUEST | NLM_F_ACK | NLM_F_EXCL | NLM_F_CREATE;
         self.acked_request(req).await
     }
 
@@ -95,7 +99,9 @@ impl Handle {
     }
 
     /// List the current rules
-    pub fn list_rules(&mut self) -> impl TryStream<Ok = RuleMessage, Error = Error> {
+    pub fn list_rules(
+        &mut self,
+    ) -> impl TryStream<Ok = RuleMessage, Error = Error> {
         let mut req = NetlinkMessage::from(AuditMessage::ListRules(None));
         req.header.flags = NLM_F_REQUEST | NLM_F_DUMP;
 
@@ -103,16 +109,20 @@ impl Handle {
             Ok(response) => Either::Left(response.map(move |msg| {
                 let (header, payload) = msg.into_parts();
                 match payload {
-                    NetlinkPayload::InnerMessage(AuditMessage::ListRules(Some(rule_msg))) => {
-                        Ok(rule_msg)
+                    NetlinkPayload::InnerMessage(AuditMessage::ListRules(
+                        Some(rule_msg),
+                    )) => Ok(rule_msg),
+                    NetlinkPayload::Error(err_msg) => {
+                        Err(Error::NetlinkError(err_msg))
                     }
-                    NetlinkPayload::Error(err_msg) => Err(Error::NetlinkError(err_msg)),
                     _ => Err(Error::UnexpectedMessage(NetlinkMessage::new(
                         header, payload,
                     ))),
                 }
             })),
-            Err(e) => Either::Right(future::err::<RuleMessage, Error>(e).into_stream()),
+            Err(e) => Either::Right(
+                future::err::<RuleMessage, Error>(e).into_stream(),
+            ),
         }
     }
 
@@ -136,10 +146,15 @@ impl Handle {
         let response = request.next().await.ok_or(Error::RequestFailed)?;
 
         match response.into_parts() {
-            (_, NetlinkPayload::InnerMessage(AuditMessage::GetStatus(Some(status)))) => Ok(status),
-            (header, payload) => Err(Error::UnexpectedMessage(NetlinkMessage::new(
-                header, payload,
-            ))),
+            (
+                _,
+                NetlinkPayload::InnerMessage(AuditMessage::GetStatus(Some(
+                    status,
+                ))),
+            ) => Ok(status),
+            (header, payload) => Err(Error::UnexpectedMessage(
+                NetlinkMessage::new(header, payload),
+            )),
         }
     }
 }

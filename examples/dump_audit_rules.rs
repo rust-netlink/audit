@@ -8,15 +8,16 @@ use futures::stream::TryStreamExt;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    let (connection, handle, _) = new_connection().map_err(|e| format!("{}", e))?;
+    let (connection, handle, _) =
+        new_connection().map_err(|e| format!("{e}"))?;
     tokio::spawn(connection);
-    list_rules(handle).await.map_err(|e| format!("{}", e))
+    list_rules(handle).await.map_err(|e| format!("{e}"))
 }
 
 async fn list_rules(mut handle: Handle) -> Result<(), Error> {
     let mut rules = handle.list_rules();
     while let Some(rule) = rules.try_next().await? {
-        println!("{:?}", rule);
+        println!("{rule:?}");
     }
     Ok(())
 }

@@ -9,17 +9,18 @@
 use audit::{
     new_connection,
     packet::{
-        constants::AUDIT_ARCH_X86_64, RuleAction, RuleField, RuleFieldFlags, RuleFlags,
-        RuleMessage, RuleSyscalls,
+        constants::AUDIT_ARCH_X86_64, RuleAction, RuleField, RuleFieldFlags,
+        RuleFlags, RuleMessage, RuleSyscalls,
     },
     Error, Handle,
 };
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    let (connection, handle, _) = new_connection().map_err(|e| format!("{}", e))?;
+    let (connection, handle, _) =
+        new_connection().map_err(|e| format!("{e}"))?;
     tokio::spawn(connection);
-    add_rules(handle).await.map_err(|e| format!("{}", e))
+    add_rules(handle).await.map_err(|e| format!("{e}"))
 }
 
 async fn add_rules(mut handle: Handle) -> Result<(), Error> {

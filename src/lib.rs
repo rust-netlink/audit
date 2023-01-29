@@ -20,7 +20,11 @@ use futures::channel::mpsc::UnboundedReceiver;
 #[allow(clippy::type_complexity)]
 #[cfg(feature = "tokio_socket")]
 pub fn new_connection() -> io::Result<(
-    proto::Connection<packet::AuditMessage, sys::TokioSocket, packet::NetlinkAuditCodec>,
+    proto::Connection<
+        packet::AuditMessage,
+        sys::TokioSocket,
+        packet::NetlinkAuditCodec,
+    >,
     Handle,
     UnboundedReceiver<(NetlinkMessage<packet::AuditMessage>, sys::SocketAddr)>,
 )> {
@@ -36,7 +40,8 @@ pub fn new_connection_with_socket<S>() -> io::Result<(
 where
     S: sys::AsyncSocket,
 {
-    let (conn, handle, messages) =
-        netlink_proto::new_connection_with_codec(sys::protocols::NETLINK_AUDIT)?;
+    let (conn, handle, messages) = netlink_proto::new_connection_with_codec(
+        sys::protocols::NETLINK_AUDIT,
+    )?;
     Ok((conn, Handle::new(handle), messages))
 }
