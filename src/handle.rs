@@ -196,4 +196,17 @@ impl Handle {
             )),
         }
     }
+
+    /// Set the audit status
+    ///
+    /// You must have properly set the mask field according to which fields
+    /// must be set.
+    pub async fn set_status(
+        &mut self,
+        status: StatusMessage,
+    ) -> Result<(), Error> {
+        let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
+        req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
+        self.acked_request(req).await
+    }
 }
