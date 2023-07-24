@@ -126,12 +126,51 @@ impl Handle {
         }
     }
 
-    /// Enable receiving audit events
+    /// Enable receiving events in this process.
+    ///
+    /// This function enable events and set the PID in a single message.
+    ///
+    /// This works well if done once in the process life. If however you need to
+    /// disable and enable events, you will want to call the
+    /// `Handle::set_enabled` and `Handle::set_pid` directly, so as to
+    /// handle the errors in a more granular manner.
     pub async fn enable_events(&mut self) -> Result<(), Error> {
         let mut status = StatusMessage::new();
         status.enabled = 1;
         status.pid = process::id();
         status.mask = AUDIT_STATUS_ENABLED | AUDIT_STATUS_PID;
+        let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
+        req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
+        self.acked_request(req).await
+    }
+
+    /// Set whether to enable the audit daemon or not.
+    ///
+    /// When enabling the audit daemon with this function, you should ensure
+    /// that you set the PID of the current process already with a call to
+    /// `Handle::set_pid`.
+    ///
+    /// See `Handle::enable_events` for a more convenient helper to enable
+    /// events in a single call.
+    pub async fn set_enabled(&mut self, value: bool) -> Result<(), Error> {
+        let mut status = StatusMessage::new();
+        status.enabled = if value { 1 } else { 0 };
+        status.mask = AUDIT_STATUS_ENABLED;
+        let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
+        req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
+        self.acked_request(req).await
+    }
+
+    /// Set the PID to which audit messages should be addressed.
+    ///
+    /// You probably want to use either:
+    /// - Your own pid, to receive audit events
+    /// - 0, to unset the PID restriction, for example when disabling the audit
+    ///   connection.
+    pub async fn set_pid(&mut self, pid: u32) -> Result<(), Error> {
+        let mut status = StatusMessage::new();
+        status.pid = pid;
+        status.mask = AUDIT_STATUS_PID;
         let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
         req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
         self.acked_request(req).await
