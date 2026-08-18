@@ -1,4 +1,15 @@
 # Changelog
+## [0.8.0] - 2026-08-18
+### Breaking changes
+ - Use latest rust-netlink crates. (a82a86f)
+
+### New features
+ - Add Handle::set_status method. (8ed0e28)
+ - feat: add set_enabled and set_pid helpers. (705100d)
+
+### Bug fixes
+ - N/A
+
 ## [0.7.3] - 2023-07-10
 ### Breaking changes
  - N/A
