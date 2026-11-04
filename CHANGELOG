@@ -1,4 +1,15 @@
 # Changelog
+## [0.8.1] - 2026-11-04
+### Breaking changes
+ - N/A
+
+### New features
+ - N/A
+
+### Bug fixes
+ - Use netlink-proto 0.14.1. (01be3ef)
+ - LICENSE: fix LICENSE-MIT. (7cd26aa)
+
 ## [0.8.0] - 2026-08-18
 ### Breaking changes
  - Use latest rust-netlink crates. (a82a86f)
