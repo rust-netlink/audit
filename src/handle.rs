@@ -11,9 +11,9 @@ use netlink_packet_core::{
     NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP,
     NLM_F_EXCL, NLM_F_NONREC, NLM_F_REQUEST,
 };
-use netlink_proto::{sys::SocketAddr, ConnectionHandle};
+use netlink_proto::{sys::SocketAddr, ConnectionHandle, NetlinkProtoError};
 
-use crate::packet::{rules::RuleMessage, AuditMessage, StatusMessage};
+use crate::packet::{AuditMessage, AuditStatus, RuleMessage, StatusMessage};
 
 // ==========================================
 // mask values
@@ -53,7 +53,10 @@ impl Handle {
     pub fn request(
         &mut self,
         message: NetlinkMessage<AuditMessage>,
-    ) -> Result<impl Stream<Item = NetlinkMessage<AuditMessage>>, Error> {
+    ) -> Result<
+        impl Stream<Item = Result<NetlinkMessage<AuditMessage>, NetlinkProtoError>>,
+        Error,
+    > {
         self.0
             .request(message, SocketAddr::new(0, 0))
             .map_err(|_| Error::RequestFailed)
@@ -68,6 +71,7 @@ impl Handle {
     ) -> Result<(), Error> {
         let mut response = self.request(message)?;
         if let Some(message) = response.next().await {
+            let message = message.map_err(|_| Error::RequestFailed)?;
             let (header, payload) = message.into_parts();
             // NetlinkError and AuditMessage are forwarded to the
             // handle. Ack is signaled by the stream finishing.
@@ -107,6 +111,7 @@ impl Handle {
 
         match self.request(req) {
             Ok(response) => Either::Left(response.map(move |msg| {
+                let msg = msg.map_err(|_| Error::RequestFailed)?;
                 let (header, payload) = msg.into_parts();
                 match payload {
                     NetlinkPayload::InnerMessage(AuditMessage::ListRules(
@@ -138,7 +143,7 @@ impl Handle {
         let mut status = StatusMessage::new();
         status.enabled = 1;
         status.pid = process::id();
-        status.mask = AUDIT_STATUS_ENABLED | AUDIT_STATUS_PID;
+        status.mask = AuditStatus::Enabled | AuditStatus::Pid;
         let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
         req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
         self.acked_request(req).await
@@ -155,7 +160,7 @@ impl Handle {
     pub async fn set_enabled(&mut self, value: bool) -> Result<(), Error> {
         let mut status = StatusMessage::new();
         status.enabled = if value { 1 } else { 0 };
-        status.mask = AUDIT_STATUS_ENABLED;
+        status.mask = AuditStatus::Enabled;
         let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
         req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
         self.acked_request(req).await
@@ -170,7 +175,7 @@ impl Handle {
     pub async fn set_pid(&mut self, pid: u32) -> Result<(), Error> {
         let mut status = StatusMessage::new();
         status.pid = pid;
-        status.mask = AUDIT_STATUS_PID;
+        status.mask = AuditStatus::Pid;
         let mut req = NetlinkMessage::from(AuditMessage::SetStatus(status));
         req.header.flags = NLM_F_REQUEST | NLM_F_ACK;
         self.acked_request(req).await
@@ -182,7 +187,11 @@ impl Handle {
         req.header.flags = NLM_F_REQUEST | NLM_F_DUMP;
         let mut request = self.request(req)?;
 
-        let response = request.next().await.ok_or(Error::RequestFailed)?;
+        let response = request
+            .next()
+            .await
+            .ok_or(Error::RequestFailed)?
+            .map_err(|_| Error::RequestFailed)?;
 
         match response.into_parts() {
             (

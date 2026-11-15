@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 
+mod codec;
+pub use crate::codec::NetlinkAuditCodec;
+
 mod handle;
 pub use crate::handle::*;
 
@@ -15,35 +18,44 @@ pub mod proto {
 }
 pub use netlink_proto::sys;
 
-use std::io;
-
 use futures::channel::mpsc::UnboundedReceiver;
 
 #[allow(clippy::type_complexity)]
 #[cfg(feature = "tokio_socket")]
-pub fn new_connection() -> io::Result<(
-    proto::Connection<
-        packet::AuditMessage,
-        sys::TokioSocket,
-        packet::NetlinkAuditCodec,
-    >,
-    Handle,
-    UnboundedReceiver<(NetlinkMessage<packet::AuditMessage>, sys::SocketAddr)>,
-)> {
+pub fn new_connection() -> Result<
+    (
+        proto::Connection<
+            packet::AuditMessage,
+            sys::TokioSocket,
+            NetlinkAuditCodec,
+        >,
+        Handle,
+        UnboundedReceiver<(
+            NetlinkMessage<packet::AuditMessage>,
+            sys::SocketAddr,
+        )>,
+    ),
+    proto::Error,
+> {
     new_connection_with_socket()
 }
 
 #[allow(clippy::type_complexity)]
-pub fn new_connection_with_socket<S>() -> io::Result<(
-    proto::Connection<packet::AuditMessage, S, packet::NetlinkAuditCodec>,
-    Handle,
-    UnboundedReceiver<(NetlinkMessage<packet::AuditMessage>, sys::SocketAddr)>,
-)>
+pub fn new_connection_with_socket<S>() -> Result<
+    (
+        proto::Connection<packet::AuditMessage, S, NetlinkAuditCodec>,
+        Handle,
+        UnboundedReceiver<(
+            NetlinkMessage<packet::AuditMessage>,
+            sys::SocketAddr,
+        )>,
+    ),
+    proto::Error,
+>
 where
     S: sys::AsyncSocket,
 {
-    let (conn, handle, messages) = netlink_proto::new_connection_with_codec(
-        sys::protocols::NETLINK_AUDIT,
-    )?;
+    let (conn, handle, messages) =
+        netlink_proto::new_connection_with_codec(libc::NETLINK_AUDIT as isize)?;
     Ok((conn, Handle::new(handle), messages))
 }

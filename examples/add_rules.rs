@@ -6,11 +6,13 @@
 //! auditctl -w /etc/passwd -p rwxa -k my_key
 //! auditctl -a always,exit -F arch=b64 -S personality -F key=bypass
 
+const AUDIT_ARCH_X86_64: u32 = 0xC000_003E;
+
 use audit::{
     new_connection,
     packet::{
-        constants::AUDIT_ARCH_X86_64, RuleAction, RuleField, RuleFieldFlags,
-        RuleFlags, RuleMessage, RuleSyscalls,
+        RuleAction, RuleField, RuleFieldFlags, RuleFlags, RuleMessage,
+        RuleSyscalls,
     },
     Error, Handle,
 };

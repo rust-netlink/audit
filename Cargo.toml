@@ -12,9 +12,11 @@ description = "linux audit via netlink"
 [dependencies]
 futures = "0.3.11"
 thiserror = "1"
-netlink-packet-audit = { version = "0.7" }
-netlink-packet-core = { version = "0.9" }
-netlink-proto = { default-features = false, version = "0.14.1" }
+netlink-packet-audit = { git = "https://github.com/rust-netlink/netlink-packet-audit", branch = "main" }
+netlink-packet-core = { version = "1.0.0-rc2" }
+netlink-proto = { version = "1.0.0-rc2", default-features = false }
+log = "0.4.8"
+libc = "0.2"
 
 [features]
 default = ["tokio_socket"]
